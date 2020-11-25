@@ -11,14 +11,14 @@ interface StudentDao : BaseDao<Student> {
     fun deleteAll()
 
     @Query("SELECT * FROM student")
-    fun students(): List<Student>
+    fun queryAll(): List<Student>
 
     @Query("SELECT * FROM student")
-    fun studentsObservable(): LiveData<List<Student>>
+    fun queryAllObservable(): LiveData<List<Student>>
 
     @Query("SELECT * FROM student WHERE id = :id")
-    fun studentById(id: String): List<Student>
+    fun queryById(id: String): List<Student>
 
     @Query("SELECT * FROM student WHERE age > :age")
-    fun studentsAgeGreaterThan(age: String): List<Student>
+    fun queryAgeGreaterThan(age: String): List<Student>
 }

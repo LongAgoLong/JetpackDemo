@@ -7,5 +7,5 @@ import com.leo.jetpackdemo.room.SchoolDatabase
 
 class StudentViewModel(application: Application) : AndroidViewModel(application) {
     var liveDataStudent: LiveData<List<Student>> =
-        SchoolDatabase.getInstance(application).studentDao().studentsObservable()
+        SchoolDatabase.getInstance(application).studentDao().queryAllObservable()
 }

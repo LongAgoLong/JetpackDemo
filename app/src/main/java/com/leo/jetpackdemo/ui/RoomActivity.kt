@@ -2,6 +2,7 @@ package com.leo.jetpackdemo.ui
 
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
@@ -11,6 +12,7 @@ import com.leo.jetpackdemo.databinding.ActivityRoomBinding
 import com.leo.jetpackdemo.room.SchoolDatabase
 import com.leo.jetpackdemo.room.student.Student
 import com.leo.jetpackdemo.room.student.StudentViewModel
+import java.lang.ref.WeakReference
 
 class RoomActivity : AppCompatActivity() {
     private lateinit var mBinding: ActivityRoomBinding
@@ -20,8 +22,8 @@ class RoomActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val actionBar = supportActionBar ?: return
         actionBar.setDisplayHomeAsUpEnabled(true)
-
-        initView()
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_room)
+        mBinding.eventHandler = EventHandlerListener(WeakReference(this))
         initData()
     }
 
@@ -31,23 +33,6 @@ class RoomActivity : AppCompatActivity() {
             return true
         }
         return super.onOptionsItemSelected(item)
-    }
-
-    private fun initView() {
-        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_room)
-        mBinding.addBtn.setOnClickListener {
-            val name = getRandomChar().toString() + getRandomChar().toString()
-            val s =
-                Student(name, (1..16).random(), (1..10).random(), (8..14).random(), (0..1).random())
-            SchoolDatabase.getInstance(this).studentDao().insert(s)
-        }
-        mBinding.deleteBtn.setOnClickListener {
-            SchoolDatabase.getInstance(this).studentDao().deleteAll()
-            updateScreen(SchoolDatabase.getInstance(this).studentDao().students())
-        }
-        mBinding.queryBtn.setOnClickListener {
-            updateScreen(SchoolDatabase.getInstance(this).studentDao().students())
-        }
     }
 
     private fun initData() {
@@ -61,6 +46,34 @@ class RoomActivity : AppCompatActivity() {
         mBinding.resultTv.text = "查询结果:\n"
         list.forEach {
             mBinding.resultTv.append("$it\n")
+        }
+    }
+
+    inner class EventHandlerListener constructor(private val actWeak: WeakReference<RoomActivity>) {
+
+        fun onButtonClicked(view: View) {
+            val act = actWeak.get() ?: return
+            when (view.id) {
+                R.id.addBtn -> {
+                    val name = getRandomChar().toString() + getRandomChar().toString()
+                    val s =
+                        Student(
+                            name,
+                            (1..16).random(),
+                            (1..10).random(),
+                            (8..14).random(),
+                            (0..1).random()
+                        )
+                    SchoolDatabase.getInstance(act).studentDao().insert(s)
+                }
+                R.id.deleteBtn -> {
+                    SchoolDatabase.getInstance(act).studentDao().deleteAll()
+                    updateScreen(SchoolDatabase.getInstance(act).studentDao().queryAll())
+                }
+                R.id.queryBtn -> {
+                    updateScreen(SchoolDatabase.getInstance(act).studentDao().queryAll())
+                }
+            }
         }
     }
 

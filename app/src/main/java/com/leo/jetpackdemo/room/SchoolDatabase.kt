@@ -27,7 +27,7 @@ abstract class SchoolDatabase : RoomDatabase() {
                             // 可添加多个Migration
                             .addMigrations(MIGRATION_1_2)
                             // 若升级没有匹配到相应的Migration，此方法可以防止程序崩溃 -> 重新创建表，会导致数据丢失
-                            .fallbackToDestructiveMigration()
+                            // .fallbackToDestructiveMigration()
                             .allowMainThreadQueries()
                             .build()
                     }
