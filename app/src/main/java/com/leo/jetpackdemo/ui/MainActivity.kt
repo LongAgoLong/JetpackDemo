@@ -1,6 +1,5 @@
 package com.leo.jetpackdemo.ui
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -25,6 +24,10 @@ class MainActivity : AppCompatActivity() {
             when (view.id) {
                 R.id.roomBtn -> {
                     val intent = Intent(act, RoomActivity::class.java)
+                    startActivity(intent)
+                }
+                R.id.dataBindingBtn -> {
+                    val intent = Intent(act, TwoWayBindingActivity::class.java)
                     startActivity(intent)
                 }
             }
