@@ -7,6 +7,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.leo.jetpackdemo.R
 import com.leo.jetpackdemo.databinding.ActivityMainBinding
+import com.leo.jetpackdemo.paging.net.ApiProxy
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
 class MainActivity : AppCompatActivity() {
@@ -24,11 +28,15 @@ class MainActivity : AppCompatActivity() {
             when (view.id) {
                 R.id.roomBtn -> {
                     val intent = Intent(act, RoomActivity::class.java)
-                    startActivity(intent)
+                    act.startActivity(intent)
                 }
                 R.id.dataBindingBtn -> {
                     val intent = Intent(act, TwoWayBindingActivity::class.java)
-                    startActivity(intent)
+                    act.startActivity(intent)
+                }
+                R.id.pagingBtn -> {
+                    val intent = Intent(act, PagingActivity::class.java)
+                    act.startActivity(intent)
                 }
             }
         }
