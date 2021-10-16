@@ -1,9 +1,9 @@
 package com.leo.jetpackdemo.room.student
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Query
 import com.leo.jetpackdemo.room.BaseDao
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StudentDao : BaseDao<Student> {
@@ -14,7 +14,7 @@ interface StudentDao : BaseDao<Student> {
     fun queryAll(): List<Student>
 
     @Query("SELECT * FROM student")
-    fun queryAllObservable(): LiveData<List<Student>>
+    fun queryAllObservable(): Flow<List<Student>>
 
     @Query("SELECT * FROM student WHERE id = :id")
     fun queryById(id: String): List<Student>

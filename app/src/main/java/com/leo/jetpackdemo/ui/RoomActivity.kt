@@ -5,18 +5,24 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.leo.jetpackdemo.R
 import com.leo.jetpackdemo.databinding.ActivityRoomBinding
 import com.leo.jetpackdemo.room.SchoolDatabase
 import com.leo.jetpackdemo.room.student.Student
 import com.leo.jetpackdemo.room.student.StudentViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import java.lang.ref.WeakReference
 
 class RoomActivity : AppCompatActivity() {
     private lateinit var mBinding: ActivityRoomBinding
-    private lateinit var mModel: StudentViewModel
+    private val mModel: StudentViewModel by lazy {
+        ViewModelProvider(this).get(StudentViewModel::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,7 +30,19 @@ class RoomActivity : AppCompatActivity() {
         actionBar.setDisplayHomeAsUpEnabled(true)
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_room)
         mBinding.eventHandler = EventHandlerListener(WeakReference(this))
-        initData()
+
+        lifecycleScope.launchWhenCreated {
+            mModel.allStudentsObservable(this@RoomActivity).flowOn(Dispatchers.IO).collect {
+                withContext(Dispatchers.Main) {
+                    updateScreen(it)
+                }
+            }
+//            mModel.allStudents(this@RoomActivity).flowOn(Dispatchers.IO).collect {
+//                withContext(Dispatchers.Main) {
+//                    updateScreen(it)
+//                }
+//            }
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -33,13 +51,6 @@ class RoomActivity : AppCompatActivity() {
             return true
         }
         return super.onOptionsItemSelected(item)
-    }
-
-    private fun initData() {
-        mModel = ViewModelProvider(this).get(StudentViewModel::class.java)
-        mModel.liveDataStudent.observe(this, Observer {
-            updateScreen(it)
-        })
     }
 
     private fun updateScreen(list: List<Student>) {
@@ -68,7 +79,6 @@ class RoomActivity : AppCompatActivity() {
                 }
                 R.id.deleteBtn -> {
                     SchoolDatabase.getInstance(act).studentDao().deleteAll()
-                    updateScreen(SchoolDatabase.getInstance(act).studentDao().queryAll())
                 }
                 R.id.queryBtn -> {
                     updateScreen(SchoolDatabase.getInstance(act).studentDao().queryAll())
