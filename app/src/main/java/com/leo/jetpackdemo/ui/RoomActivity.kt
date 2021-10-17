@@ -1,6 +1,8 @@
 package com.leo.jetpackdemo.ui
 
 import android.os.Bundle
+import android.os.Looper
+import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +17,7 @@ import com.leo.jetpackdemo.room.student.StudentViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.lang.ref.WeakReference
 
@@ -22,6 +25,10 @@ class RoomActivity : AppCompatActivity() {
     private lateinit var mBinding: ActivityRoomBinding
     private val mModel: StudentViewModel by lazy {
         ViewModelProvider(this).get(StudentViewModel::class.java)
+    }
+
+    companion object {
+        const val TAG = "RoomActivity"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,14 +40,11 @@ class RoomActivity : AppCompatActivity() {
 
         lifecycleScope.launchWhenCreated {
             mModel.allStudentsObservable(this@RoomActivity).flowOn(Dispatchers.IO).collect {
-                withContext(Dispatchers.Main) {
-                    updateScreen(it)
-                }
+                updateScreen(it)
             }
 //            mModel.allStudents(this@RoomActivity).flowOn(Dispatchers.IO).collect {
-//                withContext(Dispatchers.Main) {
-//                    updateScreen(it)
-//                }
+//                Log.i(TAG, "collect - mainThread : ${isMainThread()}")
+//                updateScreen(it)
 //            }
         }
     }
@@ -53,7 +57,8 @@ class RoomActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    private fun updateScreen(list: List<Student>) {
+    private suspend fun updateScreen(list: List<Student>) = withContext(Dispatchers.Main) {
+        Log.i(TAG, "updateScreen - mainThread : ${isMainThread()}")
         mBinding.resultTv.text = "查询结果:\n"
         list.forEach {
             mBinding.resultTv.append("$it\n")
@@ -81,10 +86,23 @@ class RoomActivity : AppCompatActivity() {
                     SchoolDatabase.getInstance(act).studentDao().deleteAll()
                 }
                 R.id.queryBtn -> {
-                    updateScreen(SchoolDatabase.getInstance(act).studentDao().queryAll())
+                    act.lifecycleScope.launch {
+                        withContext(Dispatchers.IO) {
+                            Log.i(
+                                TAG,
+                                "queryAll - mainThread : ${act.isMainThread()}"
+                            )
+                            val all = SchoolDatabase.getInstance(act).studentDao().queryAll()
+                            updateScreen(all)
+                        }
+                    }
                 }
             }
         }
+    }
+
+    private fun isMainThread(): Boolean {
+        return Looper.myLooper() == Looper.getMainLooper()
     }
 
     private fun getRandomChar(): Char {
